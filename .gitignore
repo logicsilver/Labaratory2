@@ -1,0 +1,16 @@
+# Служебные папки Visual Studio
+.vs/
+Debug/
+Release/
+x64/
+x86/
+
+# Скомпилированные файлы и базы данных
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.suo
+*.user
+*.db
+*.opendb
