@@ -98,8 +98,27 @@ int main() {
 			break;
 
 		case menu_task_3:
-			printf("\n[Выполняется задача номер 3]\n");
+			printf("\n[Содержимое инвентаря]\n");
+
+			for (int i = 0; i < 10; i++) {
+				printf("Слот %d: [%d] ", i, inventory[i]);
+
+				switch (inventory[i]) {
+				case item_empty:      printf("(Пусто)\n"); break;
+				case item_wood:       printf("(Дерево)\n"); break;
+				case item_stone:      printf("(Камень)\n"); break;
+				case item_seeds:      printf("(Семена)\n"); break;
+				case item_iron:       printf("(Железо)\n"); break;
+				case item_gold:       printf("(Золото)\n"); break;
+				case item_hoe:        printf("(Мотыга)\n"); break;
+				case item_fertilizer: printf("(Удобрение)\n"); break;
+				case item_water_can:  printf("(Лейка)\n"); break;
+				case item_milk:       printf("(Молоко)\n"); break;
+				default:              printf("(Неизвестный предмет)\n"); break;
+				}
+			}
 			break;
+
 		case menu_task_4:
 			printf("\n[Выполняется задача номер 4]\n");
 			break;
