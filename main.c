@@ -70,13 +70,33 @@ int main() {
 		};
 
 		switch (choice) {
+
 		case menu_task_1:
 			printf("\n[Часы фермера]\n");
 			printf("\nТекущее время: День %d, %02d:00\n",current_day, current_hour);
 				break;
 		case menu_task_2:
-			printf("\n[Выполняется задача номер 2]\n");
+			printf("\n[Перемотка времени]\n");
+			printf("Сколько часов вы хотите потратить на работу? -> ");
+
+			int hours_to_work;
+			while (scanf("%d", &hours_to_work) != 1) {
+				printf("Ошибка. Введено не число. Повторите ввод -> ");
+			}
+
+			if (hours_to_work < 0) {
+				printf("Ошибка. Время не может течь идти назад!\n");
+			}
+			else {
+				current_hour += hours_to_work;
+				if (current_hour >= 24) {
+					current_day += current_hour / 24;
+					current_hour = current_hour % 24;
+				}
+				printf("Вы успешно поработали. Время обновлено!\n");
+			}
 			break;
+
 		case menu_task_3:
 			printf("\n[Выполняется задача номер 3]\n");
 			break;
