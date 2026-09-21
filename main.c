@@ -75,17 +75,18 @@ int main() {
 			printf("\n[Часы фермера]\n");
 			printf("\nТекущее время: День %d, %02d:00\n",current_day, current_hour);
 				break;
+
 		case menu_task_2:
 			printf("\n[Перемотка времени]\n");
-			printf("Сколько часов вы хотите потратить на работу? -> ");
+			printf("\nСколько часов вы хотите потратить на работу? -> ");
 
 			int hours_to_work;
 			while (scanf("%d", &hours_to_work) != 1) {
-				printf("Ошибка. Введено не число. Повторите ввод -> ");
+				printf("\nОшибка. Введено не число. Повторите ввод -> ");
 			}
 
 			if (hours_to_work < 0) {
-				printf("Ошибка. Время не может течь идти назад!\n");
+				printf("\nОшибка. Время не может  идти назад!\n");
 			}
 			else {
 				current_hour += hours_to_work;
@@ -93,7 +94,7 @@ int main() {
 					current_day += current_hour / 24;
 					current_hour = current_hour % 24;
 				}
-				printf("Вы успешно поработали. Время обновлено!\n");
+				printf("\nВы успешно поработали.\n");
 			}
 			break;
 
@@ -104,23 +105,70 @@ int main() {
 				printf("Слот %d: [%d] ", i, inventory[i]);
 
 				switch (inventory[i]) {
-				case item_empty:      printf("(Пусто)\n"); break;
-				case item_wood:       printf("(Дерево)\n"); break;
-				case item_stone:      printf("(Камень)\n"); break;
-				case item_seeds:      printf("(Семена)\n"); break;
-				case item_iron:       printf("(Железо)\n"); break;
-				case item_gold:       printf("(Золото)\n"); break;
-				case item_hoe:        printf("(Мотыга)\n"); break;
-				case item_fertilizer: printf("(Удобрение)\n"); break;
-				case item_water_can:  printf("(Лейка)\n"); break;
-				case item_milk:       printf("(Молоко)\n"); break;
-				default:              printf("(Неизвестный предмет)\n"); break;
+				case item_empty:      
+					printf("(Пусто)\n"); 
+					break;
+				case item_wood:       
+					printf("(Дерево)\n"); 
+				break;
+				case item_stone:      
+					printf("(Камень)\n"); 
+				break;
+				case item_seeds:      
+					printf("(Семена)\n"); 
+				break;
+				case item_iron:       
+					printf("(Железо)\n"); 
+				break;
+				case item_gold:       
+					printf("(Золото)\n"); 
+				break;
+				case item_hoe:        
+					printf("(Мотыга)\n"); 
+				break;
+				case item_fertilizer: 
+					printf("(Удобрение)\n"); 
+				break;
+				case item_water_can:  
+					printf("(Лейка)\n"); 
+				break;
+				case item_milk:       
+					printf("(Молоко)\n"); 
+				break;
+				default:             
+					printf("(Неизвестный предмет)\n"); 
+				break;
 				}
 			}
 			break;
 
 		case menu_task_4:
-			printf("\n[Выполняется задача номер 4]\n");
+			printf("\n[Положить прдемет в слот]\n");
+
+			printf("\nПорядок предмета -> ");
+			int index_item;
+			while (scanf("%d", &index_item) != 1) {
+				printf("Ошибка. Введено не число. Повторите ввод -> ");
+			}
+
+			if (index_item< 0 || index_item > 9) {
+				printf("Ошибка! Неверный индекс слота. Допустимо только от 0 до 9.\n");
+				break;
+			}
+
+			printf("\nId предмета -> ");
+			int new_id_item;
+			while (scanf("%d", &new_id_item) != 1) {
+				printf("\nОшибка. Введено не число. Повторите ввод -> ");
+			}
+
+			if (index_item < 0 || index_item > 9) {
+				printf("\nОшибка! Неверный id предмета. Допустимо только от 0 до 9.\n");
+				break;
+			}
+
+			inventory[index_item] = new_id_item;
+
 			break;
 		case menu_task_5:
 			printf("\n[Выполняется задача номер 5]\n");
