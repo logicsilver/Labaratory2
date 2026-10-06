@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <Windows.h>
+#include <string.h>
 
 #define menu_exit    0
 #define menu_task_1  1
@@ -11,9 +12,6 @@
 #define menu_task_4  4
 #define menu_task_5  5
 #define menu_task_6  6
-
-
-
 
 #define item_empty          0  //Пустота
 #define item_wood           1  //Дерево
@@ -26,6 +24,163 @@
 #define item_water_can      8  //Лейка
 #define item_milk           9  //Молоко
 
+int get_safe_int() {
+	int value;
+	while (scanf("%d", &value) != 1) {
+		printf("Ошибка. Введено не число. Повторите ввод -> ");
+		while ((getchar()) != '\n');
+	}
+	return value;
+}
+
+void show_clock(int current_day, int current_hour) {
+	printf("\n[Часы фермера]\n");
+	printf("\nТекущее время: День %d, %02d:00\n", current_day, current_hour);
+}
+
+void fast_forward_time(int* current_day, int* current_hour) {
+	printf("\n[Перемотка времени]\n");
+	printf("\nСколько часов вы хотите потратить на работу? -> ");
+
+	int hours_to_work;
+	while (scanf("%d", &hours_to_work) != 1) {
+		printf("\nОшибка. Введено не число. Повторите ввод -> ");
+		while ((getchar()) != '\n');
+	}
+
+	if (hours_to_work < 0) {
+		printf("\nОшибка. Время не может  идти назад\n");
+	}
+	else {
+		*current_hour += hours_to_work;
+		if (*current_hour >= 24) {
+			*current_day += *current_hour / 24;
+			*current_hour = *current_hour % 24;
+		}
+		printf("\nВы успешно поработали.\n");
+	}
+}
+
+void print_inventory(int inventory[]) {
+	printf("\n[Содержимое инвентаря]\n");
+
+	for (int i = 0; i < 10; i++) {
+		printf("Слот %d: [%d] ", i, inventory[i]);
+
+		switch (inventory[i]) {
+		case item_empty:
+			printf("(Пусто)\n");
+			break;
+		case item_wood:
+			printf("(Дерево)\n");
+			break;
+		case item_stone:
+			printf("(Камень)\n");
+			break;
+		case item_seeds:
+			printf("(Семена)\n");
+			break;
+		case item_iron:
+			printf("(Железо)\n");
+			break;
+		case item_gold:
+			printf("(Золото)\n");
+			break;
+		case item_hoe:
+			printf("(Мотыга)\n");
+			break;
+		case item_fertilizer:
+			printf("(Удобрение)\n");
+			break;
+		case item_water_can:
+			printf("(Лейка)\n");
+			break;
+		case item_milk:
+			printf("(Молоко)\n");
+			break;
+		default:
+			printf("(Неизвестный предмет)\n");
+			break;
+		}
+	}
+}
+
+void put_item(int inventory[]) {
+	int index_item;
+	int new_id_item;
+
+	printf("\n[Положить прдемет в слот]\n");
+
+	printf("\nПорядок предмета -> ");
+	while (scanf("%d", &index_item) != 1) {
+		printf("Ошибка. Введено не число. Повторите ввод -> ");
+		while ((getchar()) != '\n');
+	}
+
+	if (index_item < 0 || index_item > 9) {
+		printf("Ошибка! Неверный индекс слота. Допустимо только от 0 до 9.\n");
+		return;
+	}
+
+	printf("\nId предмета -> ");
+	while (scanf("%d", &new_id_item) != 1) {
+		printf("\nОшибка. Введено не число. Повторите ввод -> ");
+		while ((getchar()) != '\n');
+	}
+
+	if (new_id_item < 0 || new_id_item > 9) {
+		printf("\nОшибка! Неверный id предмета. Допустимо только от 0 до 9.\n");
+		return;
+	}
+
+	inventory[index_item] = new_id_item;
+}
+
+void drop_item(int inventory[]) {
+	int index_item;
+
+	printf("\n[Выбросить предмет из слота]\n");
+
+	printf("\nПорядок предмета -> ");
+	while (scanf("%d", &index_item) != 1) {
+		printf("Ошибка. Введено не число. Повторите ввод -> ");
+		while ((getchar()) != '\n');
+	}
+	if (index_item < 0 || index_item > 9) {
+		printf("Ошибка! Неверный индекс слота. Допустимо только от 0 до 9.\n");
+		return;
+	}
+
+	inventory[index_item] = 0;
+}
+
+void remove_duplicates(int inventory[]) {
+	printf("\n[Устранение дубликатов]\n");
+
+	printf("Инвент до -> ");
+	for (int i = 0; i < 10; i++) {
+		printf("%d ", inventory[i]);
+	}
+	printf("\n");
+
+	for (int i = 0; i < 10; i++) {
+		if (inventory[i] == item_empty) {
+			continue;
+		}
+
+		for (int j = i + 1; j < 10; j++) {
+			if (inventory[j] == inventory[i]) {
+				inventory[j] = item_empty;
+			}
+		}
+	}
+
+	printf("Инветн после -> ");
+	for (int i = 0; i < 10; i++) {
+		printf("%d ", inventory[i]);
+	}
+	printf("\n");
+}
 
 int main() {
 
@@ -38,7 +193,6 @@ int main() {
 	int current_hour = 8;
 	int inventory[10] = { 0 };
 
-
 	inventory[0] = item_hoe;
 	inventory[1] = item_water_can;
 	inventory[2] = item_seeds;
@@ -49,9 +203,6 @@ int main() {
 	inventory[7] = item_seeds;
 	inventory[8] = item_seeds;
 	inventory[9] = item_stone;
-
-	int index_item;
-	int new_id_item;
 
 	while (run) {
 		int choice;
@@ -66,170 +217,39 @@ int main() {
 		printf("\n   [6] - Устранение дубликатов\n");
 		printf("\nВведите пунт -> ");
 
-
-		while (scanf("%d", &choice) != 1) {
-			printf("Ошибка. Введено не число. Повторите ввод -> ");
-			int c; 
-			while ((c = getchar()) != '\n' && c != EOF); // Очистка буфера, чтобы scanf не зацикливался при вводе букв
-		};
+		choice = get_safe_int();
 
 		switch (choice) {
 
 		case menu_task_1:
-			printf("\n[Часы фермера]\n");
-			printf("\nТекущее время: День %d, %02d:00\n", current_day, current_hour);
+			show_clock(current_day, current_hour);
 			break;
 
 		case menu_task_2:
-			printf("\n[Перемотка времени]\n");
-			printf("\nСколько часов вы хотите потратить на работу? -> ");
-
-			int hours_to_work;
-			while (scanf("%d", &hours_to_work) != 1) {
-				printf("\nОшибка. Введено не число. Повторите ввод -> ");
-				int c; 
-				while ((c = getchar()) != '\n' && c != EOF);
-			}
-
-			if (hours_to_work < 0) {
-				printf("\nОшибка. Время не может  идти назад!\n");
-			}
-			else {
-				current_hour += hours_to_work;
-				if (current_hour >= 24) {
-					current_day += current_hour / 24;
-					current_hour = current_hour % 24;
-				}
-				printf("\nВы успешно поработали.\n");
-			}
+			fast_forward_time(&current_day, &current_hour);
 			break;
 
 		case menu_task_3:
-			printf("\n[Содержимое инвентаря]\n");
-
-			for (int i = 0; i < 10; i++) {
-				printf("Слот %d: [%d] ", i, inventory[i]);
-
-				switch (inventory[i]) {
-				case item_empty:
-					printf("(Пусто)\n");
-					break;
-				case item_wood:
-					printf("(Дерево)\n");
-					break;
-				case item_stone:
-					printf("(Камень)\n");
-					break;
-				case item_seeds:
-					printf("(Семена)\n");
-					break;
-				case item_iron:
-					printf("(Железо)\n");
-					break;
-				case item_gold:
-					printf("(Золото)\n");
-					break;
-				case item_hoe:
-					printf("(Мотыга)\n");
-					break;
-				case item_fertilizer:
-					printf("(Удобрение)\n");
-					break;
-				case item_water_can:
-					printf("(Лейка)\n");
-					break;
-				case item_milk:
-					printf("(Молоко)\n");
-					break;
-				default:
-					printf("(Неизвестный предмет)\n");
-					break;
-				}
-			}
+			print_inventory(inventory);
 			break;
 
 		case menu_task_4:
-			printf("\n[Положить прдемет в слот]\n");
-
-			printf("\nПорядок предмета -> ");
-			while (scanf("%d", &index_item) != 1) {
-				printf("Ошибка. Введено не число. Повторите ввод -> ");
-				int c; 
-				while ((c = getchar()) != '\n' && c != EOF);
-			}
-
-			if (index_item < 0 || index_item > 9) {
-				printf("Ошибка! Неверный индекс слота. Допустимо только от 0 до 9.\n");
-				break;
-			}
-
-			printf("\nId предмета -> ");
-			while (scanf("%d", &new_id_item) != 1) {
-				printf("\nОшибка. Введено не число. Повторите ввод -> ");
-				int c; 
-				while ((c = getchar()) != '\n' && c != EOF);
-			}
-
-			if (new_id_item < 0 || new_id_item > 9) {
-				printf("\nОшибка! Неверный id предмета. Допустимо только от 0 до 9.\n");
-				break;
-			}
-
-			inventory[index_item] = new_id_item;
-
+			put_item(inventory);
 			break;
+
 		case menu_task_5:
-			printf("\n[Выбросить предмет из слота]\n");
-
-			printf("\nПорядок предмета -> ");
-			while (scanf("%d", &index_item) != 1) {
-				printf("Ошибка. Введено не число. Повторите ввод -> ");
-				int c; 
-				while ((c = getchar()) != '\n' && c != EOF);
-			}
-			if (index_item < 0 || index_item > 9) {
-				printf("Ошибка! Неверный индекс слота. Допустимо только от 0 до 9.\n");
-				break;
-			}
-
-			inventory[index_item] = 0;
-
+			drop_item(inventory);
 			break;
+
 		case menu_task_6:
-			printf("\n[Устранение дубликатов]\n");
-
-			printf("Инвент до -> ");
-			for (int i = 0; i < 10; i++) {
-				printf("%d ", inventory[i]);
-			}
-			printf("\n");
-
-			for (int i = 0; i < 10; i++) {
-				if (inventory[i] == item_empty) {
-					continue;
-				}
-
-				for (int j = i + 1; j < 10; j++) {
-					if (inventory[j] == inventory[i]) {
-						inventory[j] = item_empty;
-					}
-				}
-			}
-
-			printf("Инветн после -> ");
-			for (int i = 0; i < 10; i++) {
-				printf("%d ", inventory[i]);
-			}
-			printf("\n");
+			remove_duplicates(inventory);
 			break;
 
 		case menu_exit:
 			printf("\n[Выполняется  выход]\n");
 			run = false;
 			break;
-
 		}
-
-
 	}
+	return 0;
 }
