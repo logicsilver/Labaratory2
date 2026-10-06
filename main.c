@@ -24,6 +24,9 @@
 #define item_water_can      8  //Лейка
 #define item_milk           9  //Молоко
 
+#define MAX_ITEMS 10
+#define MAX_NAME_LEN 32
+
 int get_safe_int() {
 	int value;
 	while (scanf("%d", &value) != 1) {
@@ -49,7 +52,7 @@ void fast_forward_time(int* current_day, int* current_hour) {
 	}
 
 	if (hours_to_work < 0) {
-		printf("\nОшибка. Время не может  идти назад\n");
+		printf("\nОшибка. Время не может  идти назад!\n");
 	}
 	else {
 		*current_hour += hours_to_work;
@@ -61,46 +64,16 @@ void fast_forward_time(int* current_day, int* current_hour) {
 	}
 }
 
-void print_inventory(int inventory[]) {
+void print_inventory(int inventory[], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
 	printf("\n[Содержимое инвентаря]\n");
 
 	for (int i = 0; i < 10; i++) {
-		printf("Слот %d: [%d] ", i, inventory[i]);
-
-		switch (inventory[i]) {
-		case item_empty:
-			printf("(Пусто)\n");
-			break;
-		case item_wood:
-			printf("(Дерево)\n");
-			break;
-		case item_stone:
-			printf("(Камень)\n");
-			break;
-		case item_seeds:
-			printf("(Семена)\n");
-			break;
-		case item_iron:
-			printf("(Железо)\n");
-			break;
-		case item_gold:
-			printf("(Золото)\n");
-			break;
-		case item_hoe:
-			printf("(Мотыга)\n");
-			break;
-		case item_fertilizer:
-			printf("(Удобрение)\n");
-			break;
-		case item_water_can:
-			printf("(Лейка)\n");
-			break;
-		case item_milk:
-			printf("(Молоко)\n");
-			break;
-		default:
-			printf("(Неизвестный предмет)\n");
-			break;
+		int item_id = inventory[i];
+		if (item_id >= 0 && item_id < 10) {
+			printf("Слот %d: [%d] - %s.\n", i, item_id, item_names[item_id]);
+		}
+		else {
+			printf("Слот %d: [%d] - Неизвестный предмет.\n", i, item_id);
 		}
 	}
 }
@@ -183,9 +156,42 @@ void remove_duplicates(int inventory[]) {
 }
 
 int main() {
-
 	SetConsoleCP(65001);
 	SetConsoleOutputCP(65001);
+
+	char farmer_name[32];
+
+	printf("Введите имя вашего фермера-> ");
+	scanf("%31s", farmer_name);
+
+	char item_names[MAX_ITEMS][MAX_NAME_LEN];
+
+	FILE* file = fopen("items.txt", "r");
+	if (file != NULL) {
+		int temp_id;
+		char temp_name[32];
+
+		while (fscanf(file, "%d %31s", &temp_id, temp_name) == 2) {
+			if (temp_id >= 0 && temp_id < MAX_ITEMS) {
+				strcpy(item_names[temp_id], temp_name);
+			}
+		}
+		fclose(file);
+		printf("Предметы получены\n");
+	}
+	else {
+		printf("\n[Предупреждение]: Файл items.txt не найден.\n");
+		strcpy(item_names[item_empty], "Пусто");
+		strcpy(item_names[item_wood], "Дерево");
+		strcpy(item_names[item_stone], "Камень");
+		strcpy(item_names[item_seeds], "Семена");
+		strcpy(item_names[item_iron], "Железо");
+		strcpy(item_names[item_gold], "Золото");
+		strcpy(item_names[item_hoe], "Мотыга");
+		strcpy(item_names[item_fertilizer], "Удобрение");
+		strcpy(item_names[item_water_can], "Лейка");
+		strcpy(item_names[item_milk], "Молоко");
+	}
 
 	bool run = true;
 
@@ -207,7 +213,7 @@ int main() {
 	while (run) {
 		int choice;
 
-		printf("\n====MAIN_MENU====\n");
+		printf("\n==== ФЕРМА : %s ====\n", farmer_name);
 		printf("\n   [0] - Выход\n");
 		printf("\n   [1] - Посмотреть на часы\n");
 		printf("\n   [2] - Промотать время\n");
@@ -215,7 +221,7 @@ int main() {
 		printf("\n   [4] - Положить предмет в слот\n");
 		printf("\n   [5] - Выбросить предмет\n");
 		printf("\n   [6] - Устранение дубликатов\n");
-		printf("\nВведите пунт -> ");
+		printf("\nВведите пункт -> ");
 
 		choice = get_safe_int();
 
@@ -230,7 +236,7 @@ int main() {
 			break;
 
 		case menu_task_3:
-			print_inventory(inventory);
+			print_inventory(inventory, item_names);
 			break;
 
 		case menu_task_4:
