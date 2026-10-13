@@ -33,7 +33,7 @@
 #define MAX_ITEMS        10
 #define MAX_NAME_LEN     32
 
-// Функция для безопасного ввода целого числа
+// Функция безопасного ввода целого числа
 int get_safe_int() {
     int value;
     while (scanf("%d", &value) != 1) {
@@ -189,7 +189,7 @@ void find_item(int inventory[], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     printf("\n");
 }
 
-// 8. Запись в дневник
+// 8. Запись состояния в дневник фермера
 void write_diary(char farmer_name[], int current_day, int current_hour, int inventory[], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     printf("\n[Запись в дневник фермера]\n");
 
@@ -214,7 +214,7 @@ void write_diary(char farmer_name[], int current_day, int current_hour, int inve
     printf("Запись успешно добавлена в diary.txt!\n");
 }
 
-// 9. Расшифровка записей
+// 9. Расшифровка старых записей (Шаблонизатор писем для всех)
 void decode_notes(char farmer_name[], int current_day, int inventory[], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     printf("\n[Расшифровка старых записей]\n");
 
@@ -277,29 +277,93 @@ void decode_notes(char farmer_name[], int current_day, int inventory[], char ite
     printf("\nРезультат сохранен в output.txt!\n");
 }
 
-// 10. Вывод карты из файла map.txt
+// 10. Задание по варианту: Распаковщик карты (RLE)
 void output_map() {
-    printf("\n[Карта фермы]\n");
+    printf("\n[Распаковка карты (Вариант 10)]\n");
 
-    FILE* map = fopen("input.txt", "r");
+    FILE* map = fopen("map.txt", "r");
     if (map == NULL) {
         printf("Ошибка: не удалось открыть map.txt!\n");
         return;
     }
 
-    int coeficent;
-    char ch;
-    while (fscanf(map, "%d", &coeficent) == 1) {
-        ch = fgetc(map);
-        if (ch != EOF && (ch < '0' || ch > '9')) {
-            for (int i = 0; i < coeficent; i++) {
-                putchar(ch);
+    FILE* out = fopen("map_output.txt", "w");
+
+    char line[256];
+    int line_number = 0;
+    int expected_length = -1;
+    bool geometry_ok = true;
+
+    printf("\n--- Карта фермы ---\n");
+
+    while (fgets(line, sizeof(line), map) != NULL) {
+        line_number++;
+
+        // Убираем перевод строки из прочитанного буфера
+        line[strcspn(line, "\r\n")] = '\0';
+
+        if (strlen(line) == 0) {
+            continue;
+        }
+
+        char unpacked[512] = "";
+        int out_pos = 0;
+        int i = 0;
+        int len = strlen(line);
+
+        // Парсим строку RLE (число + символ)
+        while (i < len) {
+            int count = 0;
+
+            // Накапливаем число
+            while (i < len && line[i] >= '0' && line[i] <= '9') {
+                count = count * 10 + (line[i] - '0');
+                i++;
+            }
+
+            // Если множителя не было — повторяем 1 раз
+            if (count == 0) {
+                count = 1;
+            }
+
+            if (i < len) {
+                char symbol = line[i];
+                i++;
+
+                for (int k = 0; k < count; k++) {
+                    if (out_pos < sizeof(unpacked) - 1) {
+                        unpacked[out_pos++] = symbol;
+                    }
+                }
             }
         }
+        unpacked[out_pos] = '\0';
+
+        // Проверка геометрии (одинаковая ли длина у всех строк)
+        if (expected_length == -1) {
+            expected_length = out_pos;
+        }
+        else if (out_pos != expected_length) {
+            printf("[Ошибка геометрии]: Строка %d имеет длину %d (ожидалось %d)!\n",
+                line_number, out_pos, expected_length);
+            geometry_ok = false;
+        }
+
+        // Вывод каждой распакованной строки с новой строчки (\n)
+        printf("%s\n", unpacked);
+        if (out != NULL) {
+            fprintf(out, "%s\n", unpacked);
+        }
     }
-    printf("\n");
 
     fclose(map);
+    if (out != NULL) {
+        fclose(out);
+    }
+
+    if (geometry_ok && line_number > 0) {
+        printf("\nГеометрия карты верна! Сохранено в map_output.txt\n");
+    }
 }
 
 int main() {
@@ -312,6 +376,7 @@ int main() {
 
     char item_names[MAX_ITEMS][MAX_NAME_LEN];
 
+    // Загрузка названий предметов
     FILE* file = fopen("items.txt", "r");
     if (file != NULL) {
         int temp_id;
@@ -326,7 +391,7 @@ int main() {
         printf("Предметы загружены из items.txt!\n");
     }
     else {
-        printf("\n[Предупреждение]: Файл items.txt не найден\n");
+        printf("\n[Предупреждение]: Файл items.txt не найден, загружены стандартные названия.\n");
         strcpy(item_names[item_empty], "Пусто");
         strcpy(item_names[item_wood], "Дерево");
         strcpy(item_names[item_stone], "Камень");
@@ -343,7 +408,6 @@ int main() {
     int current_day = 1;
     int current_hour = 8;
 
-    // Начальный инвентарь
     int inventory[MAX_ITEMS] = { 0 };
     inventory[0] = item_hoe;
     inventory[1] = item_water_can;
@@ -368,7 +432,7 @@ int main() {
         printf("   [7] - Поиск предмета в рюкзаке по названию\n");
         printf("   [8] - Записать состояние в дневник фермера\n");
         printf("   [9] - Расшифровать старые записи\n");
-        printf("   [10] - Вывести карту\n");
+        printf("   [10] - Распаковать карту фермы (Вариант 10)\n");
         printf("\nВведите пункт -> ");
 
         int choice = get_safe_int();
