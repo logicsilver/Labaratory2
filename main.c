@@ -16,6 +16,7 @@
 #define menu_task_7      7
 #define menu_task_8      8
 #define menu_task_9      9
+#define menu_task_10     10
 
 // ID предметов
 #define item_empty       0
@@ -276,6 +277,31 @@ void decode_notes(char farmer_name[], int current_day, int inventory[], char ite
     printf("\nРезультат сохранен в output.txt!\n");
 }
 
+// 10. Вывод карты из файла map.txt
+void output_map() {
+    printf("\n[Карта фермы]\n");
+
+    FILE* map = fopen("input.txt", "r");
+    if (map == NULL) {
+        printf("Ошибка: не удалось открыть map.txt!\n");
+        return;
+    }
+
+    int coeficent;
+    char ch;
+    while (fscanf(map, "%d", &coeficent) == 1) {
+        ch = fgetc(map);
+        if (ch != EOF && (ch < '0' || ch > '9')) {
+            for (int i = 0; i < coeficent; i++) {
+                putchar(ch);
+            }
+        }
+    }
+    printf("\n");
+
+    fclose(map);
+}
+
 int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
@@ -317,7 +343,7 @@ int main() {
     int current_day = 1;
     int current_hour = 8;
 
-    // Начальный инвент
+    // Начальный инвентарь
     int inventory[MAX_ITEMS] = { 0 };
     inventory[0] = item_hoe;
     inventory[1] = item_water_can;
@@ -342,6 +368,7 @@ int main() {
         printf("   [7] - Поиск предмета в рюкзаке по названию\n");
         printf("   [8] - Записать состояние в дневник фермера\n");
         printf("   [9] - Расшифровать старые записи\n");
+        printf("   [10] - Вывести карту\n");
         printf("\nВведите пункт -> ");
 
         int choice = get_safe_int();
@@ -373,6 +400,9 @@ int main() {
             break;
         case menu_task_9:
             decode_notes(farmer_name, current_day, inventory, item_names);
+            break;
+        case menu_task_10:
+            output_map();
             break;
         case menu_exit:
             printf("\n[Выполняется выход...]\n");
