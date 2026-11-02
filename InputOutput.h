@@ -254,126 +254,197 @@ void output_map(void) {
 
 void to_adventure(void) {
     system("cls");
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
 
-    printf("Введите размер карты: ");
+    printf("Введите размер карты (5 - 30): ");
     int SIZE = get_safe_int();
     if (SIZE < 5 || SIZE > 30) {
         return;
     }
 
     int floorCounter = 1;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
+    // Исправлен тип приведения в malloc на (char*)
     char** map = (char**)malloc(SIZE * sizeof(char*));
     for (int i = 0; i < SIZE; i++) {
-        map[i] = (char**)malloc(SIZE * sizeof(char));
+        map[i] = (char*)malloc(SIZE * sizeof(char));
     }
 
-next_floor:
+    bool inDungeon = true;
 
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            if (i == 0 || i == SIZE - 1 || j == 0 || j == SIZE - 1) {
-                map[i][j] = '#';
-            }
-            else {
-                if (rand() % 100 < 30) {
-                    map[i][j] = '!';
-                }
-                else {
-                    map[i][j] = '0';
-                }
-            }
-        }
-    }
-
-    int playerX, playerY;
-    do {
-        playerX = 1 + rand() % (SIZE - 2);
-        playerY = 1 + rand() % (SIZE - 2);
-    } while (map[playerY][playerX] != '0');
-
-    map[playerY][playerX] = 'D';
-    char tileUnderPlayer = 'D';
-
-    int ladderX, ladderY;
-    do {
-        ladderX = 1 + rand() % (SIZE - 2);
-        ladderY = 1 + rand() % (SIZE - 2);
-    } while (map[ladderY][ladderX] != '0');
-    map[ladderY][ladderX] = 'U';
-
-    map[playerY][playerX] = 'Y';
-
-    while (true) {
-        system("cls");
-
-        printf("--- ЭТАЖ %d ---\n", floorCounter);
-
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    // Внешний цикл этажей вместо goto
+    while (inDungeon) {
+        // 1. Генерация карты
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                if (map[i][j] == 'Y') {
-                    SetConsoleTextAttribute(hConsole, 14);
-                    printf("Y");
-                    SetConsoleTextAttribute(hConsole, 7);
-                }
-                else if (map[i][j] == 'U') {
-                    SetConsoleTextAttribute(hConsole, 13);
-                    printf("U");
-                    SetConsoleTextAttribute(hConsole, 7);
-                }
-                else if (map[i][j] == 'D') {
-                    SetConsoleTextAttribute(hConsole, 9);
-                    printf("D");
-                    SetConsoleTextAttribute(hConsole, 7);
+                if (i == 0 || i == SIZE - 1 || j == 0 || j == SIZE - 1) {
+                    map[i][j] = '#';
                 }
                 else {
-                    printf("%c", map[i][j]);
+                    map[i][j] = (rand() % 100 < 20) ? '!' : '0';
                 }
             }
-            printf("\n");
         }
 
-        printf("Управление: [W,A,S,D] | [Q - Выйти домой]\n");
+        // 2. Спавн игрока и выхода D
+        int playerX, playerY;
+        do {
+            playerX = 1 + rand() % (SIZE - 2);
+            playerY = 1 + rand() % (SIZE - 2);
+        } while (map[playerY][playerX] != '0');
 
-        char input = _getch();
+        map[playerY][playerX] = 'D';
+        char tileUnderPlayer = 'D';
 
-        if (input == 'q' || input == 'Q') {
-            if (tileUnderPlayer == 'D') {
-                break;
+        // 3. Спавн лестницы наверх U
+        int ladderX, ladderY;
+        do {
+            ladderX = 1 + rand() % (SIZE - 2);
+            ladderY = 1 + rand() % (SIZE - 2);
+        } while (map[ladderY][ladderX] != '0');
+        map[ladderY][ladderX] = 'U';
+
+        // Ставим символ игрока поверх клетки D
+        map[playerY][playerX] = 'Y';
+
+        bool onCurrentFloor = true;
+
+        // Цикл текущего этажа
+        while (onCurrentFloor) {
+            // Очистка старого ветра
+            for (int i = 1; i < SIZE - 1; i++) {
+                for (int j = 1; j < SIZE - 1; j++) {
+                    if (map[i][j] == '^' || map[i][j] == 'v' || map[i][j] == '<' || map[i][j] == '>') {
+                        map[i][j] = '0';
+                    }
+                }
             }
-            else {
-                printf("\nВы можете выйти домой только на лестнице D!\n");
-                system("pause");
+            if (tileUnderPlayer == '^' || tileUnderPlayer == 'v' || tileUnderPlayer == '<' || tileUnderPlayer == '>') {
+                tileUnderPlayer = '0';
+            }
+
+            // Генерация нового ветра
+            int windCount = ((SIZE - 2) * (SIZE - 2)) * 15 / 100;
+            const char windDirs[] = { '^', 'v', '<', '>' };
+            for (int w = 0; w < windCount; w++) {
+                int wx = 1 + rand() % (SIZE - 2);
+                int wy = 1 + rand() % (SIZE - 2);
+                if (map[wy][wx] == '0') {
+                    map[wy][wx] = windDirs[rand() % 4];
+                }
+            }
+
+            // Отрисовка
+            system("cls");
+            printf("--- ЭТАЖ %d ---\n", floorCounter);
+
+            for (int i = 0; i < SIZE; i++) {
+                for (int j = 0; j < SIZE; j++) {
+                    char cell = map[i][j];
+                    if (cell == 'Y') SetConsoleTextAttribute(hConsole, 14);
+                    else if (cell == 'U') SetConsoleTextAttribute(hConsole, 13);
+                    else if (cell == 'D') SetConsoleTextAttribute(hConsole, 9);
+                    else if (cell == '^' || cell == 'v' || cell == '<' || cell == '>') SetConsoleTextAttribute(hConsole, 11);
+
+                    printf("%c", cell);
+                    SetConsoleTextAttribute(hConsole, 7);
+                }
+                printf("\n");
+            }
+
+            printf("Управление: [W,A,S,D] | [Q - Выйти домой]\n");
+
+            int input = _getch();
+            // Игнорируем спецклавиши (стрелки, F1-F12), чтобы не сбрасывать ход
+            if (input == 0 || input == 224) {
+                _getch();
                 continue;
             }
-        }
 
-        int nextX = playerX;
-        int nextY = playerY;
-
-        if (input == 'w' || input == 'W') nextY--;
-        if (input == 's' || input == 'S') nextY++;
-        if (input == 'd' || input == 'D') nextX++;
-        if (input == 'a' || input == 'A') nextX--;
-
-        if (nextX >= 0 && nextX < SIZE && nextY >= 0 && nextY < SIZE) {
-            if (map[nextY][nextX] != '#' && map[nextY][nextX] != '!') {
-                map[playerY][playerX] = tileUnderPlayer;
-
-                playerX = nextX;
-                playerY = nextY;
-
-                tileUnderPlayer = map[playerY][playerX];
-
-                map[playerY][playerX] = 'Y';
-
-                if (tileUnderPlayer == 'U') {
-                    floorCounter++;
-                    printf("\nПереход на следующий этаж...\n");
+            if (input == 'q' || input == 'Q') {
+                if (tileUnderPlayer == 'D') {
+                    inDungeon = false;
+                    break;
+                }
+                else {
+                    printf("\nВы можете выйти домой только на лестнице D!\n");
                     system("pause");
-                    goto next_floor;
+                    continue;
+                }
+            }
+
+            int nextX = playerX;
+            int nextY = playerY;
+
+            if (input == 'w' || input == 'W') nextY--;
+            else if (input == 's' || input == 'S') nextY++;
+            else if (input == 'd' || input == 'D') nextX++;
+            else if (input == 'a' || input == 'A') nextX--;
+            else continue; // Если нажата левая кнопка, не обновляем карту
+
+            // Проверка шага
+            if (nextX >= 0 && nextX < SIZE && nextY >= 0 && nextY < SIZE) {
+                if (map[nextY][nextX] != '#' && map[nextY][nextX] != '!') {
+                    map[playerY][playerX] = tileUnderPlayer;
+                    playerX = nextX;
+                    playerY = nextY;
+                    tileUnderPlayer = map[playerY][playerX];
+                    map[playerY][playerX] = 'Y';
+
+                    if (tileUnderPlayer == 'U') {
+                        floorCounter++;
+                        printf("\nПереход на следующий этаж...\n");
+                        system("pause");
+                        onCurrentFloor = false;
+                        continue;
+                    }
+
+                    // Обработка ветра с защитой от бесконечного цикла
+                    int windChainLimit = 0;
+                    while ((tileUnderPlayer == '^' || tileUnderPlayer == 'v' || tileUnderPlayer == '<' || tileUnderPlayer == '>') && windChainLimit < 5) {
+                        windChainLimit++;
+                        int dx = 0, dy = 0;
+                        if (tileUnderPlayer == '^') dy = -1;
+                        else if (tileUnderPlayer == 'v') dy = 1;
+                        else if (tileUnderPlayer == '<') dx = -1;
+                        else if (tileUnderPlayer == '>') dx = 1;
+
+                        char currentWindTile = tileUnderPlayer;
+                        int steps = 0;
+
+                        while (steps < 3) {
+                            int checkX = playerX + dx;
+                            int checkY = playerY + dy;
+
+                            if (checkX < 0 || checkX >= SIZE || checkY < 0 || checkY >= SIZE) break;
+                            if (map[checkY][checkX] == '#' || map[checkY][checkX] == '!') break;
+
+                            map[playerY][playerX] = currentWindTile;
+                            playerX = checkX;
+                            playerY = checkY;
+
+                            currentWindTile = map[playerY][playerX];
+                            map[playerY][playerX] = 'Y';
+                            steps++;
+
+                            // Если пролетая попали на лестницу — сразу останавливаемся на ней
+                            if (currentWindTile == 'U') break;
+                        }
+
+                        tileUnderPlayer = currentWindTile;
+
+                        // Защита от зависания: если перед ветром сразу стена, выходим из цикла
+                        if (steps == 0) break;
+
+                        if (tileUnderPlayer == 'U') {
+                            floorCounter++;
+                            printf("\nВас сдуло прямиком на следующий этаж!...\n");
+                            system("pause");
+                            onCurrentFloor = false;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -385,8 +456,8 @@ next_floor:
     free(map);
 
     printf("Спасибо за игру!\n");
-    return;
 }
+
 
 void print_menu(const char* farmer_name) {
     printf("\n==== ФЕРМА : %s ====\n", farmer_name);
