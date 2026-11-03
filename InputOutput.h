@@ -265,7 +265,6 @@ void to_adventure(void) {
     int floorCounter = 1;
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    // Исправлен тип приведения в malloc на (char*)
     char** map = (char**)malloc(SIZE * sizeof(char*));
     for (int i = 0; i < SIZE; i++) {
         map[i] = (char*)malloc(SIZE * sizeof(char));
@@ -273,9 +272,7 @@ void to_adventure(void) {
 
     bool inDungeon = true;
 
-    // Внешний цикл этажей вместо goto
     while (inDungeon) {
-        // 1. Генерация карты
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 if (i == 0 || i == SIZE - 1 || j == 0 || j == SIZE - 1) {
@@ -287,7 +284,6 @@ void to_adventure(void) {
             }
         }
 
-        // 2. Спавн игрока и выхода D
         int playerX, playerY;
         do {
             playerX = 1 + rand() % (SIZE - 2);
@@ -297,7 +293,6 @@ void to_adventure(void) {
         map[playerY][playerX] = 'D';
         char tileUnderPlayer = 'D';
 
-        // 3. Спавн лестницы наверх U
         int ladderX, ladderY;
         do {
             ladderX = 1 + rand() % (SIZE - 2);
@@ -305,14 +300,11 @@ void to_adventure(void) {
         } while (map[ladderY][ladderX] != '0');
         map[ladderY][ladderX] = 'U';
 
-        // Ставим символ игрока поверх клетки D
         map[playerY][playerX] = 'Y';
 
         bool onCurrentFloor = true;
 
-        // Цикл текущего этажа
         while (onCurrentFloor) {
-            // Очистка старого ветра
             for (int i = 1; i < SIZE - 1; i++) {
                 for (int j = 1; j < SIZE - 1; j++) {
                     if (map[i][j] == '^' || map[i][j] == 'v' || map[i][j] == '<' || map[i][j] == '>') {
@@ -324,7 +316,6 @@ void to_adventure(void) {
                 tileUnderPlayer = '0';
             }
 
-            // Генерация нового ветра
             int windCount = ((SIZE - 2) * (SIZE - 2)) * 15 / 100;
             const char windDirs[] = { '^', 'v', '<', '>' };
             for (int w = 0; w < windCount; w++) {
@@ -335,7 +326,6 @@ void to_adventure(void) {
                 }
             }
 
-            // Отрисовка
             system("cls");
             printf("--- ЭТАЖ %d ---\n", floorCounter);
 
@@ -356,7 +346,6 @@ void to_adventure(void) {
             printf("Управление: [W,A,S,D] | [Q - Выйти домой]\n");
 
             int input = _getch();
-            // Игнорируем спецклавиши (стрелки, F1-F12), чтобы не сбрасывать ход
             if (input == 0 || input == 224) {
                 _getch();
                 continue;
@@ -381,9 +370,8 @@ void to_adventure(void) {
             else if (input == 's' || input == 'S') nextY++;
             else if (input == 'd' || input == 'D') nextX++;
             else if (input == 'a' || input == 'A') nextX--;
-            else continue; // Если нажата левая кнопка, не обновляем карту
+            else continue;
 
-            // Проверка шага
             if (nextX >= 0 && nextX < SIZE && nextY >= 0 && nextY < SIZE) {
                 if (map[nextY][nextX] != '#' && map[nextY][nextX] != '!') {
                     map[playerY][playerX] = tileUnderPlayer;
@@ -400,7 +388,6 @@ void to_adventure(void) {
                         continue;
                     }
 
-                    // Обработка ветра с защитой от бесконечного цикла
                     int windChainLimit = 0;
                     while ((tileUnderPlayer == '^' || tileUnderPlayer == 'v' || tileUnderPlayer == '<' || tileUnderPlayer == '>') && windChainLimit < 5) {
                         windChainLimit++;
@@ -428,13 +415,11 @@ void to_adventure(void) {
                             map[playerY][playerX] = 'Y';
                             steps++;
 
-                            // Если пролетая попали на лестницу — сразу останавливаемся на ней
                             if (currentWindTile == 'U') break;
                         }
 
                         tileUnderPlayer = currentWindTile;
 
-                        // Защита от зависания: если перед ветром сразу стена, выходим из цикла
                         if (steps == 0) break;
 
                         if (tileUnderPlayer == 'U') {
