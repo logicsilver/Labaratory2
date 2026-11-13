@@ -1,7 +1,10 @@
-#include "Header.h"
+#pragma once
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <Windows.h>
 
 
-void skip_utf8_bom(FILE* f) {
+static inline void skip_utf8_bom(FILE* f) {
     if (f == NULL) return;
     int c1 = fgetc(f);
     if (c1 == 0xEF) {
@@ -16,7 +19,7 @@ void skip_utf8_bom(FILE* f) {
     }
 }
 
-int utf8_char_len(unsigned char c) {
+static inline int utf8_char_len(unsigned char c) {
     if ((c & 0x80) == 0) return 1;
     if ((c & 0xE0) == 0xC0) return 2;
     if ((c & 0xF0) == 0xE0) return 3;
@@ -24,13 +27,13 @@ int utf8_char_len(unsigned char c) {
     return 1;
 }
 
-void read_utf8_word(char* buffer, int max_bytes) {
+static inline void read_utf8_word(char* buffer, int max_bytes) {
     HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
     DWORD mode;
     if (GetConsoleMode(hIn, &mode)) {
         wchar_t wbuf[MAX_LINE_LEN];
         DWORD read = 0;
-        while (true) {
+        while (1) {
             if (!ReadConsoleW(hIn, wbuf, MAX_LINE_LEN - 1, &read, NULL) || read == 0) {
                 buffer[0] = '\0';
                 return;
