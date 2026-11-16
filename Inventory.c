@@ -15,6 +15,8 @@ void init_default_items(char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     strcpy(item_names[ITEM_FERTILIZER], "Удобрение");
     strcpy(item_names[ITEM_WATER_CAN], "Лейка");
     strcpy(item_names[ITEM_MILK], "Молоко");
+    strcpy(item_names[ITEM_APPLE], "Яблоко");
+    strcpy(item_names[ITEM_CARROT], "Морковка");
 }
 
 bool load_items_from_file(const char* filename, char item_names[MAX_ITEMS][MAX_NAME_LEN]) {

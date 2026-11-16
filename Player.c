@@ -23,6 +23,8 @@ struct Player* create_player(struct Player* current_player) {
     new_player->hp = 100;
     new_player->max_stamina = 50;
     new_player->stamina = 50;
+    new_player->hunger = 100;
+    new_player->steps_taken = 0;
     new_player->gold = 0;
     new_player->x = 0;
     new_player->y = 0;
@@ -46,6 +48,7 @@ void show_player_card(struct Player* player, int current_day, int current_hour, 
     printf("Имя: %s\n", player->name);
     printf("Здоровье: %d / %d\n", player->hp, player->max_hp);
     printf("Выносливость: %d / %d\n", player->stamina, player->max_stamina);
+    printf("Сытость: %d / 100\n", player->hunger);
     printf("Золото: %d\n", player->gold);
     printf("Текущее время: День %d, %02d:00\n", current_day, current_hour);
 

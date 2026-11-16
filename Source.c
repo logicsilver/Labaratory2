@@ -58,7 +58,7 @@ int main(void) {
     int current_day = 1;
     int current_hour = 8;
 
-    // ВАЖНО: Изначально персонажа нет! Указатель равен NULL.
+    // Изначально персонажа нет казатель равен NULL.
     struct Player* player = NULL;
 
     while (run) {
@@ -68,7 +68,7 @@ int main(void) {
         switch (choice) {
         case 0: // Выход
             printf("\n[Выполняется выход...]\n");
-            free_player(player); // Обязательная очистка памяти перед выходом!
+            free_player(player); //  очистка памяти 
             run = false;
             break;
         case 1: // Создать / пересоздать персонажа
@@ -87,7 +87,6 @@ int main(void) {
             sleep_player(player, &current_day, &current_hour);
             break;
 
-            // --- ДАЛЕЕ ИДЕТ ЗАЩИТА ОТ ДУРАКА: проверяем, создан ли персонаж ---
 
         case 6: // Инвентарь
             if (player == NULL) printf("\n[Ошибка] Персонаж не создан!\n");
@@ -118,10 +117,9 @@ int main(void) {
             else decode_notes(player->name, current_day, player->inventory, item_names);
             break;
         case 13: // Распаковать карту
-            output_map(); // Это работает и без персонажа
+            output_map();
             break;
         case 14: // Приключение
-            // Сама to_adventure тоже внутри проверяет player на NULL, но можно оставить так
             to_adventure(player, &current_day, &current_hour);
             break;
         default:

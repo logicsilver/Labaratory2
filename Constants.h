@@ -20,7 +20,7 @@ enum MenuOption {
     MENU_ADVENTURE = 14
 };
 
-#define MAX_ITEMS        10
+#define MAX_ITEMS        12
 #define MAX_NAME_LEN     64
 #define MAX_LINE_LEN     512
 #define MAX_UNPACKED_LEN 1024
@@ -39,7 +39,9 @@ enum ItemID {
     ITEM_HOE = 6,
     ITEM_FERTILIZER = 7,
     ITEM_WATER_CAN = 8,
-    ITEM_MILK = 9
+    ITEM_MILK = 9,
+    ITEM_APPLE = 10,
+    ITEM_CARROT = 11
 };
 
 #endif
