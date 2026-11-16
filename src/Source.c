@@ -46,7 +46,7 @@ int main(void) {
 
     char item_names[MAX_ITEMS][MAX_NAME_LEN] = { 0 };
 
-    // Загрузка делегирована модулю Inventory
+    // Загрузка предоставлена модулю Inventory
     if (load_items_from_file("items.txt", item_names)) {
         printf("Предметы загружены из items.txt!\n");
     }
