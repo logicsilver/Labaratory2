@@ -1,5 +1,7 @@
 #include "Adventure.h"
 #include "Constants.h"
+#include "Player.h"
+#include "TimeLogic.h" // Для функции add_hours_logic()
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -7,8 +9,11 @@
 #include <windows.h>
 #include <conio.h>
 
-// ... Сюда вставляешь allocate_map, free_map, generate_floor, 
-// draw_map, apply_wind и саму to_adventure ...
+struct Map {
+    char** grid;
+    int size;
+    int floor_counter;
+};
 
 char** allocate_map(int size) {
     char** map = (char**)malloc(size * sizeof(char*));
@@ -18,7 +23,6 @@ char** allocate_map(int size) {
     return map;
 }
 
-// Очистка памяти
 void free_map(char** map, int size) {
     for (int i = 0; i < size; i++) {
         free(map[i]);
@@ -26,9 +30,7 @@ void free_map(char** map, int size) {
     free(map);
 }
 
-// Генерация этажа (стены, препятствия, игрок, лестницы, ветер)
 void generate_floor(char** map, int size, int* pX, int* pY) {
-    // 1. Обычные клетки, стены и препятствия
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             if (i == 0 || i == size - 1 || j == 0 || j == size - 1) {
@@ -40,14 +42,12 @@ void generate_floor(char** map, int size, int* pX, int* pY) {
         }
     }
 
-    // 2. Точка входа (лестница 'D' - домой/назад)
     do {
         *pX = 1 + rand() % (size - 2);
         *pY = 1 + rand() % (size - 2);
     } while (map[*pY][*pX] != '0');
     map[*pY][*pX] = 'D';
 
-    // 3. Лестница на следующий этаж 'U'
     int ladderX, ladderY;
     do {
         ladderX = 1 + rand() % (size - 2);
@@ -55,7 +55,6 @@ void generate_floor(char** map, int size, int* pX, int* pY) {
     } while (map[ladderY][ladderX] != '0');
     map[ladderY][ladderX] = 'U';
 
-    // 4. Ветер (Генерируется один раз для этажа, больше не меняется)
     int windCount = ((size - 2) * (size - 2)) * 15 / 100;
     const char windDirs[] = { '^', 'v', '<', '>' };
     for (int w = 0; w < windCount; w++) {
@@ -67,11 +66,7 @@ void generate_floor(char** map, int size, int* pX, int* pY) {
     }
 }
 
-// Отрисовка карты
 void draw_map(char** map, int size, int floorCounter, HANDLE hConsole) {
-    system("cls");
-    printf("--- ЭТАЖ %d ---\n", floorCounter);
-
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             char cell = map[i][j];
@@ -88,7 +83,6 @@ void draw_map(char** map, int size, int floorCounter, HANDLE hConsole) {
     printf("Управление: [W,A,S,D] | [Q - Выйти домой]\n");
 }
 
-// Логика полета по ветру
 bool apply_wind(char** map, int size, int* pX, int* pY, char* tileUnder) {
     int windChainLimit = 0;
     while ((*tileUnder == '^' || *tileUnder == 'v' || *tileUnder == '<' || *tileUnder == '>') && windChainLimit < 5) {
@@ -123,7 +117,6 @@ bool apply_wind(char** map, int size, int* pX, int* pY, char* tileUnder) {
         *tileUnder = currentWindTile;
         if (steps == 0) break;
 
-        // Если ветер сдул прямо на лестницу - сообщаем главному циклу
         if (*tileUnder == 'U') {
             return true;
         }
@@ -131,33 +124,47 @@ bool apply_wind(char** map, int size, int* pX, int* pY, char* tileUnder) {
     return false;
 }
 
-// --- ОСНОВНАЯ ФУНКЦИЯ ---
+void to_adventure(struct Player* player, int* current_day, int* current_hour) {
+    if (player == NULL) {
+        printf("\n[Ошибка] Создайте персонажа, чтобы отправиться в приключение!\n");
+        return;
+    }
+    if (player->stamina <= 0) {
+        printf("\n[Ошибка] Вы слишком устали для приключений! Нужно поспать.\n");
+        return;
+    }
+    if (*current_hour >= 2 && *current_hour < 8) {
+        printf("\n[Ошибка] На дворе глухая ночь, слишком опасно! Ложитесь спать.\n");
+        return;
+    }
 
-void to_adventure(void) {
     srand((unsigned int)time(NULL));
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    int floorCounter = 1;
+    struct Map* level_map = (struct Map*)malloc(sizeof(struct Map));
+    level_map->floor_counter = 1;
+
     bool inDungeon = true;
 
     while (inDungeon) {
-        // 1. Случайный размер этажа от 5 до 30
-        int currentSize = 5 + rand() % 26;
+        level_map->size = 5 + rand() % 26;
+        level_map->grid = allocate_map(level_map->size);
 
-        // 2. Выделение памяти для текущего этажа
-        char** map = allocate_map(currentSize);
+        generate_floor(level_map->grid, level_map->size, &(player->x), &(player->y));
 
-        // 3. Генерация этажа и установка игрока
-        int playerX, playerY;
-        generate_floor(map, currentSize, &playerX, &playerY);
-
-        char tileUnderPlayer = map[playerY][playerX]; // Сохраняем клетку под игроком ('D')
-        map[playerY][playerX] = 'Y';                  // Ставим игрока
+        char tileUnderPlayer = level_map->grid[player->y][player->x];
+        level_map->grid[player->y][player->x] = 'Y';
 
         bool onCurrentFloor = true;
 
         while (onCurrentFloor) {
-            draw_map(map, currentSize, floorCounter, hConsole);
+            system("cls");
+            printf("HP: %d/%d | Выносливость: %d/%d | Золото: %d | Этаж: %d | Время: %02d:00\n",
+                player->hp, player->max_hp, player->stamina, player->max_stamina,
+                player->gold, level_map->floor_counter, *current_hour);
+            printf("----------------------------------------------------------------------\n");
+
+            draw_map(level_map->grid, level_map->size, level_map->floor_counter, hConsole);
 
             int input = _getch();
             if (input == 0 || input == 224) {
@@ -177,50 +184,90 @@ void to_adventure(void) {
                 }
             }
 
-            int nextX = playerX, nextY = playerY;
+            int nextX = player->x;
+            int nextY = player->y;
+
             if (input == 'w' || input == 'W') nextY--;
             else if (input == 's' || input == 'S') nextY++;
             else if (input == 'd' || input == 'D') nextX++;
             else if (input == 'a' || input == 'A') nextX--;
             else continue;
 
-            // Проверка на столкновение
-            if (nextX >= 0 && nextX < currentSize && nextY >= 0 && nextY < currentSize) {
-                if (map[nextY][nextX] != '#' && map[nextY][nextX] != '!') {
-                    // Восстанавливаем старую клетку
-                    map[playerY][playerX] = tileUnderPlayer;
+            if (nextX >= 0 && nextX < level_map->size && nextY >= 0 && nextY < level_map->size) {
+                if (level_map->grid[nextY][nextX] != '#' && level_map->grid[nextY][nextX] != '!') {
 
-                    // Перемещаем игрока
-                    playerX = nextX;
-                    playerY = nextY;
-                    tileUnderPlayer = map[playerY][playerX];
-                    map[playerY][playerX] = 'Y';
+                    player->stamina -= 1;
 
-                    // Проверка лестницы
-                    if (tileUnderPlayer == 'U') {
-                        floorCounter++;
-                        printf("\nПереход на следующий этаж...\n");
+                    level_map->grid[player->y][player->x] = tileUnderPlayer;
+                    player->x = nextX;
+                    player->y = nextY;
+                    tileUnderPlayer = level_map->grid[player->y][player->x];
+                    level_map->grid[player->y][player->x] = 'Y';
+
+                    if (player->stamina <= 0 || (*current_hour >= 2 && *current_hour < 8)) {
+                        printf("\nВы падаете без сил! Спасатели возвращают вас домой...\n");
+                        printf("За услуги спасения вы теряете половину золота!\n");
+                        player->gold /= 2;
                         system("pause");
+                        inDungeon = false;
+                        break;
+                    }
+
+                    if (tileUnderPlayer == 'U') {
+                        level_map->floor_counter++;
+                        player->stamina -= 5;
+                        add_hours_logic(current_day, current_hour, 1);
+
+                        int reward = ADVENTURE_BASE_GOLD_MULT * (level_map->floor_counter - 1);
+                        player->gold += reward;
+
+                        printf("\nПереход на следующий этаж! Получено золота: %d. Усталость: -5, Прошел 1 час.\n", reward);
+                        system("pause");
+
+                        if (player->stamina <= 0 || (*current_hour >= 2 && *current_hour < 8)) {
+                            printf("\nВы падаете без сил прямо на лестнице! Спасатели возвращают вас домой...\n");
+                            player->gold /= 2;
+                            system("pause");
+                            inDungeon = false;
+                            break;
+                        }
+
                         onCurrentFloor = false;
                         continue;
                     }
 
-                    // Применение эффекта ветра
-                    bool blownToNextFloor = apply_wind(map, currentSize, &playerX, &playerY, &tileUnderPlayer);
+                    bool blownToNextFloor = apply_wind(level_map->grid, level_map->size, &(player->x), &(player->y), &tileUnderPlayer);
                     if (blownToNextFloor) {
-                        floorCounter++;
-                        printf("\nВас сдуло прямиком на следующий этаж!...\n");
+                        level_map->floor_counter++;
+                        player->stamina -= 5;
+                        add_hours_logic(current_day, current_hour, 1);
+
+                        int reward = ADVENTURE_BASE_GOLD_MULT * (level_map->floor_counter - 1);
+                        player->gold += reward;
+
+                        printf("\nВас сдуло прямиком на следующий этаж! Получено золота: %d. Усталость: -5, Прошел 1 час.\n", reward);
                         system("pause");
+
+                        if (player->stamina <= 0 || (*current_hour >= 2 && *current_hour < 8)) {
+                            printf("\nВы падаете без сил прямо на лестнице! Спасатели возвращают вас домой...\n");
+                            player->gold /= 2;
+                            system("pause");
+                            inDungeon = false;
+                            break;
+                        }
+
                         onCurrentFloor = false;
                         continue;
                     }
                 }
             }
         }
-        // Обязательная очистка памяти при выходе с текущего этажа (независимо от того, вышли ли мы совсем или идем дальше)
-        free_map(map, currentSize);
+        free_map(level_map->grid, level_map->size);
     }
 
+    printf("\nПамять структуры карты по адресу %p освобождена\n", (void*)level_map);
+    free(level_map);
+
     system("cls");
-    printf("Спасибо за игру!\n");
+    printf("Приключение завершено. Вы вернулись на ферму!\n");
 }

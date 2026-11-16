@@ -1,20 +1,20 @@
 #include "Inventory.h"
 #include "Utils.h"
-#include "Utf8Util.h" // Для read_utf8_word и skip_utf8_bom
+#include "Utf8Util.h"
 #include <stdio.h>
 #include <string.h>
 
 void init_default_items(char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
-    strcpy(item_names[item_empty], "Пусто");
-    strcpy(item_names[item_wood], "Дерево");
-    strcpy(item_names[item_stone], "Камень");
-    strcpy(item_names[item_seeds], "Семена");
-    strcpy(item_names[item_iron], "Железо");
-    strcpy(item_names[item_gold], "Золото");
-    strcpy(item_names[item_hoe], "Мотыга");
-    strcpy(item_names[item_fertilizer], "Удобрение");
-    strcpy(item_names[item_water_can], "Лейка");
-    strcpy(item_names[item_milk], "Молоко");
+    strcpy(item_names[ITEM_EMPTY], "Пусто");
+    strcpy(item_names[ITEM_WOOD], "Дерево");
+    strcpy(item_names[ITEM_STONE], "Камень");
+    strcpy(item_names[ITEM_SEEDS], "Семена");
+    strcpy(item_names[ITEM_IRON], "Железо");
+    strcpy(item_names[ITEM_GOLD], "Золото");
+    strcpy(item_names[ITEM_HOE], "Мотыга");
+    strcpy(item_names[ITEM_FERTILIZER], "Удобрение");
+    strcpy(item_names[ITEM_WATER_CAN], "Лейка");
+    strcpy(item_names[ITEM_MILK], "Молоко");
 }
 
 bool load_items_from_file(const char* filename, char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
@@ -37,9 +37,6 @@ bool load_items_from_file(const char* filename, char item_names[MAX_ITEMS][MAX_N
     return true;
 }
 
-// ... Сюда вставляешь твои функции: print_inventory, put_item, drop_item, 
-// remove_duplicates, deduplicate_logic, find_item_id_logic, find_item ...
-// (Они работают без изменений)
 
 void print_inventory(int inventory[], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     printf("\n[Содержимое инвентаря]\n");
@@ -89,7 +86,7 @@ void drop_item(int inventory[]) {
         return;
     }
 
-    inventory[slot] = item_empty;
+    inventory[slot] = ITEM_EMPTY;
     printf("Слот %d теперь пуст.\n", slot);
 }
 void remove_duplicates(int inventory[]) {
@@ -140,12 +137,12 @@ void find_item(int inventory[], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
 
 void deduplicate_logic(int inventory[]) {
     for (int i = 0; i < MAX_ITEMS; i++) {
-        if (inventory[i] == item_empty) {
+        if (inventory[i] == ITEM_EMPTY) {
             continue;
         }
         for (int j = i + 1; j < MAX_ITEMS; j++) {
             if (inventory[j] == inventory[i]) {
-                inventory[j] = item_empty;
+                inventory[j] = ITEM_EMPTY;
             }
         }
     }

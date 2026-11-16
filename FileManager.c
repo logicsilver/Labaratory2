@@ -1,12 +1,9 @@
 #include "FileManager.h"
+#include "Constants.h"
 #include "Utf8Util.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-
-// ... Сюда вставляешь write_diary, decode_notes, replace_tags_in_line, 
-// unpack_rle_line_logic, output_map ...
-// (Они работают без изменений)
 
 void write_diary(char farmer_name[], int current_day, int current_hour, int inventory[], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     printf("\n[Запись в дневник фермера]\n");
@@ -43,7 +40,7 @@ void decode_notes(const char* farmer_name, int current_day, const int* inventory
 
     skip_utf8_bom(in);
 
-    char line[MAX_LINE_LEN];
+    char line[MAX_LINE_LEN]; 
     char day_str[16];
     sprintf(day_str, "%d", current_day);
 
