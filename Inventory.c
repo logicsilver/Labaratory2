@@ -78,7 +78,7 @@ void put_item(int inventory[]) {
 void drop_item(int inventory[]) {
     printf("\n[Выбросить предмет из слота]\n");
 
-    printf("Номер слота (0..%d) -> ", MAX_ITEMS - 1);
+    printf("{Номер слота (0..%d) -> ", MAX_ITEMS - 1);
     int slot = get_safe_int();
 
     if (slot < 0 || slot >= MAX_ITEMS) {
@@ -90,7 +90,7 @@ void drop_item(int inventory[]) {
     printf("Слот %d теперь пуст.\n", slot);
 }
 void remove_duplicates(int inventory[]) {
-    printf("\n[Устранение дубликатов]\n");
+    printf("\n [LOG] Устранение дубликатов\n");
 
     printf("Инвентарь до: ");
     for (int i = 0; i < MAX_ITEMS; i++) {

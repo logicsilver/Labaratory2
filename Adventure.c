@@ -13,6 +13,11 @@ struct Map {
     char** grid;
     int size;
     int floor_counter;
+
+
+
+    int back;
+    int hand;
 };
 
 char** allocate_map(int size) {
