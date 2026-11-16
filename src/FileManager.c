@@ -65,7 +65,7 @@ void decode_notes(const char* farmer_name, int current_day, const int* inventory
 void output_map(void) {
     printf("\n[Распаковка карты (Вариант 10)]\n");
 
-    FILE* in = fopen("input.txt", "r");
+    FILE* in = fopen("data/input.txt", "r");
     if (in == NULL) {
         printf("Ошибка: не удалось открыть input.txt!\n");
         return;
